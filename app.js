@@ -15,7 +15,7 @@ if (linkBtn) {
     // ✅ Set flag so Site C knows they came from here
     localStorage.setItem('passedLinkvertise', 'true');
 
-    window.open('https://linkvertise.com', '_blank', 'noopener');
+    window.open('https://link-center.net/1401533/EfTevELAULeU', '_blank', 'noopener');
     e.preventDefault();
   }, { passive: false });
 }
