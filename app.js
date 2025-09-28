@@ -6,21 +6,29 @@ let dots = [];
 let width = 0, height = 0;
 let lastTS = 0;
 
-// add explicit click handler so redirect logic is obvious and centralized
+// Linkvertise button handler
 const linkBtn = document.getElementById('linkvertise-btn');
 if (linkBtn) {
   linkBtn.addEventListener('click', (e) => {
     console.log('Redirecting to Linkvertise...');
+
+    // ✅ Set flag so Site C knows they came from here
+    localStorage.setItem('passedLinkvertise', 'true');
+
     window.open('https://linkvertise.com', '_blank', 'noopener');
     e.preventDefault();
   }, { passive: false });
 }
 
-// new WorkInk button handler
+// WorkInk button handler
 const workBtn = document.getElementById('workink-btn');
 if (workBtn) {
   workBtn.addEventListener('click', (e) => {
     console.log('Redirecting to WorkInk...');
+
+    // ✅ Also set flag so Site C accepts this path too
+    localStorage.setItem('passedLinkvertise', 'true');
+
     window.open('https://work.ink', '_blank', 'noopener');
     e.preventDefault();
   }, { passive: false });
@@ -41,7 +49,6 @@ function resize() {
 function dotCountForArea(w, h) {
   const area = w * h;
   const base = Math.round(area / 12000);
-  // reduce max dots for better performance on mobile
   return Math.max(45, Math.min(base, 180));
 }
 
@@ -60,7 +67,7 @@ function makeDot(spawnAnywhere = false) {
     x: Math.random() * width,
     y: spawnAnywhere ? Math.random() * height : -rand(5, 40),
     vy: lerp(35, 140, easeOutQuad(clamp((size - 0.6) / (2.2 - 0.6), 0, 1))),
-    vx: rand(-10, 10),   // subtle lateral drift
+    vx: rand(-10, 10),
     size,
     alpha: rand(0.4, 0.95),
     twinklePhase: Math.random() * Math.PI * 2,
@@ -69,23 +76,16 @@ function makeDot(spawnAnywhere = false) {
 }
 
 function step(dt) {
-  // Clear with solid black for crisp look
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, width, height);
-
-  // Soft blur for glow-ish effect without heavy filters
-  // Draw smaller dots first for depth
-  // removed per-frame sorting for performance: dots.sort((a, b) => a.size - b.size);
 
   for (let i = 0; i < dots.length; i++) {
     const p = dots[i];
 
-    // Update
     p.y += p.vy * dt;
-    p.x += p.vx * dt * 0.2; // very subtle
+    p.x += p.vx * dt * 0.2;
     p.twinklePhase += p.twinkleSpeed * dt;
 
-    // Wrap
     if (p.y - p.size > height) {
       const n = makeDot(false);
       p.x = n.x; p.y = n.y; p.vy = n.vy; p.vx = n.vx;
@@ -95,12 +95,9 @@ function step(dt) {
     if (p.x < -10) p.x = width + 10;
     if (p.x > width + 10) p.x = -10;
 
-    // Render
     const twinkle = 0.9 + Math.sin(p.twinklePhase) * 0.1;
     const a = clamp(p.alpha * twinkle, 0.25, 1);
 
-    // Slight soft edge using shadow for performance-friendly glow
-    // only apply a modest shadow to keep GPU cost low
     if (p.size > 1.0 && a > 0.35) {
       ctx.shadowColor = `rgba(255,255,255,${a * 0.35})`;
       ctx.shadowBlur = Math.max(0, p.size * 0.5);
@@ -114,13 +111,12 @@ function step(dt) {
     ctx.fill();
   }
 
-  // reset shadow to avoid accidental accumulation
   ctx.shadowBlur = 0;
 }
 
 function loop(ts) {
   if (!lastTS) lastTS = ts;
-  const dt = Math.min(0.033, (ts - lastTS) / 1000); // cap to ~30ms
+  const dt = Math.min(0.033, (ts - lastTS) / 1000);
   lastTS = ts;
 
   step(dt);
@@ -132,7 +128,6 @@ function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
 function easeOutQuad(t) { return 1 - (1 - t) * (1 - t); }
 
-// Throttle resize for mobile Safari rotations
 let resizeRAF = 0;
 window.addEventListener('resize', () => {
   if (resizeRAF) cancelAnimationFrame(resizeRAF);
