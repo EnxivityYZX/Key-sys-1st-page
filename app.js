@@ -29,7 +29,7 @@ if (workBtn) {
     // ✅ Also set flag so Site C accepts this path too
     localStorage.setItem('passedLinkvertise', 'true');
 
-    window.open('https://work.ink', '_blank', 'noopener');
+    window.open('https://workink.net/258r/43wg5pyb', '_blank', 'noopener');
     e.preventDefault();
   }, { passive: false });
 }
